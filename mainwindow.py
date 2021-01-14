@@ -264,7 +264,7 @@ class Ui_MainWindow(object):
         self.Chat.setCornerButtonEnabled(True)
         self.Chat.setObjectName("Chat")
         self.Chat.setColumnCount(2)
-        self.Chat.setRowCount(19)
+        self.Chat.setRowCount(20)
         item = QtWidgets.QTableWidgetItem()
         item.setText("Q1")
         item.setTextAlignment(QtCore.Qt.AlignLeading | QtCore.Qt.AlignVCenter)
