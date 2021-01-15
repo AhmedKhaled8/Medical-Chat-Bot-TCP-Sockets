@@ -157,7 +157,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                         self.answers = []
 
                 else:
-                    # recieve the diagnosis and send it to the user
+                    # recieve the diagnosis and display it to the user
                     time.sleep(1)
                     diagnosis = self.diagnosis_detection()
                     item = QtWidgets.QTableWidgetItem(
