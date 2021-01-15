@@ -23,29 +23,25 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.answers = []
         self.ui.Yes.clicked.connect(lambda: self.answer_question("Yes"))
         self.ui.No.clicked.connect(lambda: self.answer_question("No"))
-        
-        
+
         # * DEFINING STANDARDS OF THE TCP STREAM CLIENT SOCKET CONNECTION
         self.HEADER = 64  # * Define a constant size of the header
         self.PORT = 5050  # * Define a port for the socket that client access
         self.FORMAT = 'utf-8'  # * A decoding/encoding format of the messages
         self.DISCONNECT_MESSAGE = '!DISCONNECT'  # * A defined disconnect message
         self.connected = True
-        
+
         # * Define the IPv4 address the client will connect to.
         self.SERVER = socket.gethostbyname(socket.gethostname())
-        
-        
+
         # * The address to which the client will connect
         self.ADDRESS = (self.SERVER, self.PORT)
         self.idle_status = False
         self.status = ""
-        
-        
+
         # * defining a socket object for the client
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        
-        
+
         # * connecting the client socket to the server socket
         self.client.connect(self.ADDRESS)
         self.timer = QtCore.QTimer(self)
@@ -66,12 +62,15 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             # * recieve the length of the status message sent from the server
             try:
                 try:
-                    status_length = int(self.client.recv(self.HEADER).decode(self.FORMAT))
+                    status_length = int(self.client.recv(
+                        self.HEADER).decode(self.FORMAT))
                 except ValueError:
-                    print("[FINISHED] Connection ended due to achieving required result ...")
+                    print(
+                        "[FINISHED] Connection ended due to achieving required result ...")
                     connected = False
                 # * recieve the status message itself from the server
-                self.status = self.client.recv(status_length).decode(self.FORMAT)
+                self.status = self.client.recv(
+                    status_length).decode(self.FORMAT)
                 print(self.status)
                 if self.status == self.DISCONNECT_MESSAGE:
                     self.idle_status = True
@@ -81,20 +80,18 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.client.close()
         print("[EXITING] Exiting recieving thread .. ")
         sys.exit()
-        
-
-        
 
     def answer_question(self, answer):
         global connected
         if not self.idle_status:
             if self.questionIndex < 9:
                 message = answer.encode(self.FORMAT)  # * encode the message
-                msg_length = f"{len(message):<{self.HEADER}}".encode(self.FORMAT)  # * create the header of the message
+                msg_length = f"{len(message):<{self.HEADER}}".encode(
+                    self.FORMAT)  # * create the header of the message
                 self.client.send(msg_length)  # * send the header first
                 self.client.send(message)  # * send the message
                 self.answers.append(answer)
-                
+
                 item = QtWidgets.QTableWidgetItem(
                     "Auto Doctor:   " + str(self.questions[self.questionIndex]))
                 item.setFlags(QtCore.Qt.ItemIsEnabled)
@@ -121,8 +118,9 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                         self.ui.No.setText("")
                         self.ui.Question.setText("")
                         self.questionIndex += 1
-                        
-                        finished_message = f"{len(self.DISCONNECT_MESSAGE):<{self.HEADER}}" + self.DISCONNECT_MESSAGE
+
+                        finished_message = f"{len(self.DISCONNECT_MESSAGE):<{self.HEADER}}" + \
+                            self.DISCONNECT_MESSAGE
                         self.client.send(finished_message.encode(self.FORMAT))
                         connected = False
 
@@ -143,15 +141,22 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                         self.ui.Question.setText(
                             self.questions[self.questionIndex])
                         self.answers = []
-                    
-                    
+
                 else:
                     time.sleep(1)
                     diagnosis = self.diagnosis_detection()
-                    item = QtWidgets.QTableWidgetItem("Auto Doctor:   " + diagnosis)
+                    item = QtWidgets.QTableWidgetItem(
+                        "Auto Doctor:   " + diagnosis)
                     self.ui.Question.setText(diagnosis)
+
+                    # item.
+                    # item.setSizeHint(0)
                     item.setFlags(QtCore.Qt.ItemIsEnabled)
                     self.ui.Chat.setItem(self.questionIndex*2, 0, item)
+                    self.ui.Chat.horizontalHeader().setSectionResizeMode(0,
+                                                                         QtWidgets.QHeaderView.ResizeToContents)
+                    self.ui.Chat.horizontalHeader().setSectionResizeMode(
+                        1, QtWidgets.QHeaderView.Stretch)
                     self.ui.Yes.setText("Okay, thank you Dr.")
                     self.ui.No.setText("I want to answer the questions again.")
 
@@ -170,12 +175,11 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         print("[EXITING] ... ")
         connected = False
         if connected:
-            finished_message = f"{len(self.DISCONNECT_MESSAGE):<{self.HEADER}}" + self.DISCONNECT_MESSAGE
+            finished_message = f"{len(self.DISCONNECT_MESSAGE):<{self.HEADER}}" + \
+                self.DISCONNECT_MESSAGE
             self.client.send(finished_message.encode(self.FORMAT))
         self.client.close()
         time.sleep(1)
-
-        
 
 
 def main():
