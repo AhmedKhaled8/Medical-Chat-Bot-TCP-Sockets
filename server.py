@@ -1,5 +1,6 @@
 import socket
 import threading
+import respond
 
 
 # * DEFINING STANDARDS OF THE TCP STREAM SOCKET CONNECTION
@@ -33,7 +34,7 @@ def handle_client(conn, addr):
     clients_database[addr[1]] = []
     while connected:
         try:
-            conn.settimeout(10.0)
+            conn.settimeout(20.0)
             # * Recieve the header of the message
             msg_length = conn.recv(HEADER).decode(FORMAT)
             conn.settimeout(None)
@@ -47,6 +48,8 @@ def handle_client(conn, addr):
                     connected = False
                     continue
                 print(f"[{addr}] sent a message : {msg}")
+                
+                
                 if msg == 'Yes':
                     # ? If the message is "YES", append a 1 to the list of the answers
                     clients_database[addr[1]].append(1)
@@ -60,10 +63,17 @@ def handle_client(conn, addr):
                 else:
                     # * Send a status message to the client confirming recieving an invalid response
                     conn.send(create_status_message(addr[1], "INVALID"))
+                    
         except socket.timeout as e:
             print("[TIME OUT] Timed out after 10 seconds")
             conn.send(create_status_message(addr[1], "IDLE"))
+            print(f"[DISCONNECTED] {addr} has disconnected")
             connected = False
+
+        except ConnectionResetError:
+            print("[FORCED CLOSED] Connection to the socket was forcedly closed by the client ... ")
+            connected = False
+
 
     conn.close()  # ! Closing the connection when exiting the stream or recieving an IDLE
 
@@ -78,14 +88,21 @@ def create_status_message(label, condition):
     Returns:
         str: encoded status message
     """
-    if condition == "VALID":
-        # ? If valid, create a confirmation message with the number of questions left
-        status_message = f'[CONFIRMED] {9 - len(clients_database[label])} questions left'
-    elif condition == "INVALID":
-        # ? If not valid, create a confirmation of invalidaty message
-        status_message = f'[UNVALID] Please send an appropiate response'
-    elif condition == "IDLE":
-        status_message = DISCONNECT_MESSAGE
+    status_message = ""
+    if len(clients_database[label]) != 9:
+        if condition == "VALID":
+            # ? If valid, create a confirmation message with the number of questions left
+            status_message = f'[CONFIRMED] {9 - len(clients_database[label])} questions left'
+        elif condition == "INVALID":
+            # ? If not valid, create a confirmation of invalidaty message
+            status_message = f'[UNVALID] Please send an appropiate response'
+            # ? If the status is IDLE
+        elif condition == "IDLE":
+            status_message = DISCONNECT_MESSAGE
+    elif len(clients_database[label]) == 9:
+        status_message = respond.respond(clients_database[label])
+        clients_database[label] = []
+        
 
     # * Encoding the status message
     status_header = len(status_message)
@@ -105,8 +122,7 @@ def start():
         # * execute client handling in a new thread
         thread = threading.Thread(target=handle_client, args=(conn, addr))
         thread.start()
-        print(
-            f"[ACTIVE CONNECTIONS] {threading.activeCount() - 1} clients have connected ...")
+        print(f"[ACTIVE CONNECTIONS] {threading.activeCount() - 1} clients have connected ...")
 
 
 start()

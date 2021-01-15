@@ -2,7 +2,7 @@
 import pickle
 import numpy as np
 
-with open ("/home/primary/git/Networks/Networks-Project/DT_model.pkl", 'rb') as file:
+with open ("DT_model.pkl", 'rb') as file:
     clf = pickle.load(file)
     
 
@@ -14,7 +14,7 @@ responses = {1: "Mostly CoVID, see a doctor quickly.",
              6: "Mostly Influenza, take Paracetamol and if the condition persists, go to a doctor.",
              7: "Unclear case but take Paracetamol and rest.",
              8: "Unclear case but take an antipyretic for the fever.",
-             9: "Could be asthma or chronic obstructive pulmonary disease, if you know you have any on them please take your medications, otherwise go see a doctor.",
+             9: "Could be asthma or chronic obstructive pulmonary disease, please take your medications.",
              10:"Could be sinusitis, if the condition persists, go to a doctor.",
              11: "Mostly common cold, no need to worry and no need to take medications.",
              12: "No need to panic, take a bronchodilator and live normally.",
