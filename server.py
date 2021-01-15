@@ -65,7 +65,7 @@ def handle_client(conn, addr):
                     conn.send(create_status_message(addr[1], "INVALID"))
                     
         except socket.timeout as e:
-            print("[TIME OUT] Timed out after 10 seconds")
+            print("[TIME OUT] Timed out after 20 seconds")
             conn.send(create_status_message(addr[1], "IDLE"))
             print(f"[DISCONNECTED] {addr} has disconnected")
             connected = False

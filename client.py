@@ -14,6 +14,9 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
+        self.setWindowTitle("Your Virtual Doctor")
+        self.setWindowIcon(QtGui.QIcon("assets/doctor_logo.png"))
+
         self.questions = ['Do you have a cough?', 'Do you have a fever?', 'Do you have shortness of breath?',
                           'Are you experiencing any fatigue?', 'Do you have a sore throat?', 'Do you have a runny nose?',
                           'Do you have any muscle pain?', 'Do you have a headache?', 'Are you experiencing loss of taste or smell?']
@@ -181,7 +184,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             check_timeout: keeps checking if the server is idle or not
         """
         if self.idle_status:
-            QtWidgets.QMessageBox.about(
+            QtWidgets.QMessageBox.warning(
                 self, "Connection Lost", "[IDLE] Connection was closed please open the UI again")
             sys.exit()
 
