@@ -28,7 +28,7 @@ def recieve_status_message():
             idle_status = True
             connected = False
             print("[IDLE] Connection was closed please open the UI again")
-            sys.exit()
+            
 
         
 
