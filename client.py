@@ -18,9 +18,10 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                           'Are you experiencing any fatigue?', 'Do you have a sore throat?', 'Do you have a runny nose?',
                           'Do you have any muscle pain?', 'Do you have a headache?', 'Are you experiencing loss of taste or smell?']
 
-        self.questionIndex = 0
+        self.questionIndex = 0  # Number of the current question in the bot
+        # ui box for the question
         self.ui.Question.setText(self.questions[self.questionIndex])
-        self.answers = []
+        self.answers = []  # the list of answers
         self.ui.Yes.clicked.connect(lambda: self.answer_question("Yes"))
         self.ui.No.clicked.connect(lambda: self.answer_question("No"))
 
@@ -57,6 +58,9 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.thread.start()
 
     def recieve_status_message(self):
+        """
+            recieve_status_message: recieves from the server if the connection is idle or not
+        """
         global connected
         while connected:
             # * recieve the length of the status message sent from the server
@@ -82,16 +86,22 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         sys.exit()
 
     def answer_question(self, answer):
+        """
+            answer_question: display the questions and answers in the chatbot and 
+            display the diagnosis when the questions are done
+        """
         global connected
+        # checking whether the connction is still available
         if not self.idle_status:
             if self.questionIndex < 9:
+                # send the answer to the server
                 message = answer.encode(self.FORMAT)  # * encode the message
                 msg_length = f"{len(message):<{self.HEADER}}".encode(
                     self.FORMAT)  # * create the header of the message
                 self.client.send(msg_length)  # * send the header first
                 self.client.send(message)  # * send the message
                 self.answers.append(answer)
-
+                # print the question and the answer in the chatbox
                 item = QtWidgets.QTableWidgetItem(
                     "Auto Doctor:   " + str(self.questions[self.questionIndex]))
                 item.setFlags(QtCore.Qt.ItemIsEnabled)
@@ -107,6 +117,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                         self.questions[self.questionIndex])
 
             if self.questionIndex == 9:
+                # end the conversation
                 if self.ui.Yes.text() == "Okay, thank you Dr.":
                     if answer == "Yes":
                         item = QtWidgets.QTableWidgetItem(
@@ -123,7 +134,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                             self.DISCONNECT_MESSAGE
                         self.client.send(finished_message.encode(self.FORMAT))
                         connected = False
-
+                    # start the questions again and reset the previous chat
                     else:
                         for i in range(self.questionIndex+1):
                             item = QtWidgets.QTableWidgetItem("")
@@ -143,14 +154,12 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                         self.answers = []
 
                 else:
+                    # recieve the diagnosis and send it to the user
                     time.sleep(1)
                     diagnosis = self.diagnosis_detection()
                     item = QtWidgets.QTableWidgetItem(
                         "Auto Doctor:   " + diagnosis)
                     self.ui.Question.setText(diagnosis)
-
-                    # item.
-                    # item.setSizeHint(0)
                     item.setFlags(QtCore.Qt.ItemIsEnabled)
                     self.ui.Chat.setItem(self.questionIndex*2, 0, item)
                     self.ui.Chat.horizontalHeader().setSectionResizeMode(0,
@@ -161,16 +170,25 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                     self.ui.No.setText("I want to answer the questions again.")
 
     def diagnosis_detection(self):
+        """
+            diagnosis_detection: returns the diagnosis from the server to the ui
+        """
         print(self.answers)
         return self.status
 
     def check_timeout(self):
+        """
+            check_timeout: keeps checking if the server is idle or not
+        """
         if self.idle_status:
             QtWidgets.QMessageBox.about(
                 self, "Connection Lost", "[IDLE] Connection was closed please open the UI again")
             sys.exit()
 
     def closeEvent(self, event):
+        """
+            closeEvent: close the event when the client terminates
+        """
         global connected
         print("[EXITING] ... ")
         connected = False
