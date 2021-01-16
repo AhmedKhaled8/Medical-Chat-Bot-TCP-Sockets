@@ -5,7 +5,7 @@ import socket
 import threading
 import errno
 import time
-connected = True
+connected = True # * global variable to control the connectivity of the recieving thread
 
 
 class ApplicationWindow(QtWidgets.QMainWindow):
@@ -21,8 +21,9 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                           'Are you experiencing any fatigue?', 'Do you have a sore throat?', 'Do you have a runny nose?',
                           'Do you have any muscle pain?', 'Do you have a headache?', 'Are you experiencing loss of taste or smell?']
 
-        self.questionIndex = 0  # Number of the current question in the bot
-        # ui box for the question
+        self.questionIndex = 0  # * Number of the current question in the bot
+        
+        # * ui box for the question
         self.ui.Question.setText(self.questions[self.questionIndex])
         self.answers = []  # the list of answers
         self.ui.Yes.clicked.connect(lambda: self.answer_question("Yes"))
@@ -38,10 +39,9 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         # * Define the IPv4 address the client will connect to.
         self.SERVER = socket.gethostbyname(socket.gethostname())
 
-        # * The address to which the client will connect
-        self.ADDRESS = (self.SERVER, self.PORT)
-        self.idle_status = False
-        self.status = ""
+        self.ADDRESS = (self.SERVER, self.PORT) # * The address to which the client will connect
+        self.idle_status = False # ? A condition that tells if the client is a IDLE or Not
+        self.status = "" # * The confiramtion status recieved from the server
 
         # * defining a socket object for the client
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -69,19 +69,23 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             # * recieve the length of the status message sent from the server
             try:
                 try:
-                    status_length = int(self.client.recv(
-                        self.HEADER).decode(self.FORMAT))
+                    status_length = int(self.client.recv(self.HEADER).decode(self.FORMAT)) # * recieve of the length (header) of the status message
+                
+                # ? If the socket tried to recieve just before closing it
                 except ValueError:
                     print(
                         "[FINISHED] Connection ended due to achieving required result ...")
                     connected = False
+                
                 # * recieve the status message itself from the server
-                self.status = self.client.recv(
-                    status_length).decode(self.FORMAT)
+                self.status = self.client.recv(status_length).decode(self.FORMAT)
                 print(self.status)
+                # ? If the status message is DISCONNECT_MESSAGE, disconnect the client as IDLE
                 if self.status == self.DISCONNECT_MESSAGE:
                     self.idle_status = True
                     connected = False
+                
+            # ? If the server was forcedly closed
             except ConnectionAbortedError:
                 print("[EXITING] The GUI was closed ... ")
         self.client.close()
@@ -94,7 +98,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             display the diagnosis when the questions are done
         """
         global connected
-        # checking whether the connction is still available
+        # * checking whether the connction is still available
         if not self.idle_status:
             if self.questionIndex < 9:
                 # send the answer to the server
@@ -133,11 +137,13 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                         self.ui.Question.setText("")
                         self.questionIndex += 1
 
+                        # * ending the connection if the "Okay, thank you Dr." is sent
                         finished_message = f"{len(self.DISCONNECT_MESSAGE):<{self.HEADER}}" + \
                             self.DISCONNECT_MESSAGE
                         self.client.send(finished_message.encode(self.FORMAT))
                         connected = False
-                    # start the questions again and reset the previous chat
+                    
+                    # * start the questions again and reset the previous chat
                     else:
                         for i in range(self.questionIndex+1):
                             item = QtWidgets.QTableWidgetItem("")
